@@ -1,0 +1,17 @@
+{
+  "name": "padosipro",
+  "private": true,
+  "scripts": {
+    "dev:api": "pnpm --filter @padosipro/api dev",
+    "dev:mobile": "pnpm --filter @padosipro/mobile start",
+    "build:api": "pnpm --filter @padosipro/api build",
+    "test": "pnpm --filter @padosipro/api test",
+    "db:migrate": "pnpm --filter @padosipro/api prisma:migrate",
+    "db:seed": "pnpm --filter @padosipro/api prisma:seed",
+    "db:generate": "pnpm --filter @padosipro/api prisma:generate"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.18.0"
+}
