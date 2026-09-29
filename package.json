@@ -11,7 +11,7 @@
     "db:seed": "pnpm --filter @padosipro/api prisma:seed",
     "db:generate": "pnpm --filter @padosipro/api prisma:generate",
     "render:build": "pnpm install --frozen-lockfile && pnpm exec prisma generate --schema apps/api/prisma/schema.prisma",
-    "render:start": "pnpm exec prisma migrate deploy --schema apps/api/prisma/schema.prisma && pnpm --filter @padosipro/api run prisma:seed && pnpm --filter @padosipro/api start"
+    "render:start": "pnpm exec prisma migrate deploy --schema apps/api/prisma/schema.prisma && pnpm exec tsx apps/api/prisma/seed.ts && pnpm exec tsx apps/api/src/index.ts"
   },
   "engines": {
     "node": ">=20"

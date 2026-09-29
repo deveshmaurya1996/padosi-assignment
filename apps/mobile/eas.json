@@ -18,7 +18,8 @@
       },
       "env": {
         "APP_ENV": "production",
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_API_URL": "https://padosi-assignment.onrender.com"
       }
     },
     "production": {
@@ -27,7 +28,8 @@
       },
       "env": {
         "APP_ENV": "production",
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_API_URL": "https://padosi-assignment.onrender.com"
       }
     }
   },
