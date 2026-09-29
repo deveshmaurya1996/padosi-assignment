@@ -17,15 +17,11 @@ import { requireAuth } from "./plugins/auth";
 export async function registerRoutes(app: FastifyInstance) {
   app.get("/health", async () => ({ ok: true }));
 
-  // Render / browsers hit "/" after deploy — keep logs clean and document the API.
-  const root = async () => ({
+  app.get("/", async () => ({
     ok: true,
     service: "padosipro-api",
     health: "/health",
-    auth: ["/auth/register", "/auth/verify-otp", "/auth/login"],
-  });
-  app.get("/", root);
-  app.head("/", async (_req, reply) => reply.code(200).send());
+  }));
 
   app.post("/auth/register", async (request, reply) => {
     const result = await registerUser(request.body);
