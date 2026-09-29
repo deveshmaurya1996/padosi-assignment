@@ -10,7 +10,7 @@ Onboarding state is server-owned: `GET /me` returns `profileCompleted` and `task
 
 ### Mobile data layer
 
-Screens stay UI-only. Network work lives in hooks under `apps/mobile/hooks/` (`useLogin`, `useRegister`, `useSaveProfile`, `useTasksCatalog`, …). A thin `api()` helper in `lib/api.ts` wraps `fetch`, attaches the JWT, and normalizes errors. Session tokens use **expo-secure-store** (with a web `localStorage` fallback).
+Screens stay UI-only. Network work lives in hooks under `apps/mobile/hooks/` (`useLogin`, `useRegister`, `useSaveProfile`, `useTasksCatalog`, …). A thin `api()` helper in `lib/api.ts` wraps `fetch`, attaches the access JWT, refreshes on 401, and normalizes errors. Access + refresh tokens use **expo-secure-store** (with a web `localStorage` fallback). Logout calls `POST /auth/logout` to revoke the server session, then clears local tokens.
 
 This is intentional simplicity for a short onboarding journey — not ignorance of stronger tools.
 
@@ -29,7 +29,7 @@ This is intentional simplicity for a short onboarding journey — not ignorance 
 
 | Choice | Trade-off |
 |---|---|
-| JWT in SecureStore (7d) | Simple persistence; no refresh tokens / revocation list |
+| Access JWT (15m) + DB session + refresh rotate | Logout revokes the session; stolen access tokens die quickly; refresh is opaque and hashed |
 | `fetch` + custom hooks | Minimal deps and clear page/hook split; no cache layer or request dedupe |
 | Mailpit | Real SMTP locally without secrets; not production email |
 | Business name optional | Matches household use-cases; called out in README |
@@ -39,11 +39,11 @@ This is intentional simplicity for a short onboarding journey — not ignorance 
 
 ## What was left out
 
-Push notifications, Lifestyle Manager dashboards, wallets/payments, WebView, production API calls, refresh-token rotation, rate limiting beyond OTP rules, iOS IPA, Axios, TanStack Query, global client state libraries.
+Push notifications, Lifestyle Manager dashboards, wallets/payments, WebView, production API calls, logout-all-devices UI, rate limiting beyond OTP rules, iOS IPA, Axios, TanStack Query, global client state libraries.
 
 <!-- ## Next week
 
-1. Refresh tokens + logout-everywhere  
+1. Logout-everywhere / revoke all sessions UI  
 2. Real SMTP (SES/Resend) with branded templates  
 3. Edit profile from Account  
 4. E2E Detox or Maestro flow on emulator  

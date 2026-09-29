@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSaveTaskSelection } from "../../hooks/useTasks";
-import { Button, Screen, Subtitle, Title } from "../../components/ui";
+import { Button, Screen, StateBlock, Subtitle, Title } from "../../components/ui";
 import { colors, fonts, radius, space } from "../../theme";
 
 type SummaryItem = { id: string; name: string; category: string };
@@ -34,6 +34,29 @@ export default function ConfirmScreen() {
     router.replace("/(app)/home");
   }
 
+  if (error) {
+    return (
+      <Screen>
+        <StateBlock
+          title="Could not save selection"
+          body={error}
+          actionLabel="Retry"
+          onAction={onConfirm}
+        />
+        <Button
+          label="Edit selection"
+          variant="outline"
+          onPress={() =>
+            router.replace({
+              pathname: "/(app)/tasks",
+              params: { selected: JSON.stringify(taskIds) },
+            })
+          }
+        />
+      </Screen>
+    );
+  }
+
   return (
     <Screen>
       <Title>Confirm selection</Title>
@@ -49,26 +72,27 @@ export default function ConfirmScreen() {
         {items.length === 0 ? (
           <Text style={styles.empty}>No tasks selected.</Text>
         ) : null}
-        {error ? <Text style={styles.error}>{error}</Text> : null}
       </ScrollView>
 
-      <Button
-        label="Confirm & continue"
-        onPress={onConfirm}
-        loading={loading}
-        disabled={taskIds.length === 0}
-      />
-      <View style={{ height: space.sm }} />
-      <Button
-        label="Edit selection"
-        variant="outline"
-        onPress={() =>
-          router.replace({
-            pathname: "/(app)/tasks",
-            params: { selected: JSON.stringify(taskIds) },
-          })
-        }
-      />
+      
+      <View style={styles.footer}>
+        <Button
+          label="Confirm & continue"
+          onPress={onConfirm}
+          loading={loading}
+          disabled={taskIds.length === 0}
+        />
+        <Button
+          label="Edit selection"
+          variant="outline"
+          onPress={() =>
+            router.replace({
+              pathname: "/(app)/tasks",
+              params: { selected: JSON.stringify(taskIds) },
+            })
+          }
+        />
+      </View>
     </Screen>
   );
 }
@@ -97,9 +121,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontFamily: fonts.regular,
   },
-  error: {
-    color: colors.error,
-    marginTop: space.md,
-    fontFamily: fonts.regular,
+  footer: {
+    paddingTop: space.sm,
+    gap: space.sm,
   },
 });

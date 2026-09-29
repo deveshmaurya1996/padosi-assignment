@@ -1,43 +1,54 @@
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
-import Constants from "expo-constants";
+import type { AuthTokenResponse } from "@padosipro/types";
+import { resolveApiUrl } from "./env";
 
-const TOKEN_KEY = "padosipro_token";
+const ACCESS_KEY = "padosipro_token";
+const REFRESH_KEY = "padosipro_refresh";
+
+async function storageGet(key: string): Promise<string | null> {
+  if (Platform.OS === "web") {
+    return globalThis.localStorage?.getItem(key) ?? null;
+  }
+  return SecureStore.getItemAsync(key);
+}
+
+async function storageSet(key: string, value: string): Promise<void> {
+  if (Platform.OS === "web") {
+    globalThis.localStorage?.setItem(key, value);
+    return;
+  }
+  await SecureStore.setItemAsync(key, value);
+}
+
+async function storageDelete(key: string): Promise<void> {
+  if (Platform.OS === "web") {
+    globalThis.localStorage?.removeItem(key);
+    return;
+  }
+  await SecureStore.deleteItemAsync(key);
+}
 
 export async function getToken(): Promise<string | null> {
-  if (Platform.OS === "web") {
-    return globalThis.localStorage?.getItem(TOKEN_KEY) ?? null;
-  }
-  return SecureStore.getItemAsync(TOKEN_KEY);
+  return storageGet(ACCESS_KEY);
+}
+
+export async function getRefreshToken(): Promise<string | null> {
+  return storageGet(REFRESH_KEY);
+}
+
+export async function setTokens(access: string, refresh: string): Promise<void> {
+  await storageSet(ACCESS_KEY, access);
+  await storageSet(REFRESH_KEY, refresh);
 }
 
 export async function setToken(token: string): Promise<void> {
-  if (Platform.OS === "web") {
-    globalThis.localStorage?.setItem(TOKEN_KEY, token);
-    return;
-  }
-  await SecureStore.setItemAsync(TOKEN_KEY, token);
+  await storageSet(ACCESS_KEY, token);
 }
 
 export async function clearToken(): Promise<void> {
-  if (Platform.OS === "web") {
-    globalThis.localStorage?.removeItem(TOKEN_KEY);
-    return;
-  }
-  await SecureStore.deleteItemAsync(TOKEN_KEY);
-}
-
-function resolveApiUrl(): string {
-  const fromEnv = Constants.expoConfig?.extra?.apiUrl as string | undefined;
-  const fromPublic =
-    typeof process !== "undefined"
-      ? (process.env.EXPO_PUBLIC_API_URL as string | undefined)
-      : undefined;
-  const raw = fromPublic || fromEnv;
-  if (raw) return raw.replace(/\/$/, "");
-
-  if (Platform.OS === "android") return "http://10.0.2.2:3000";
-  return "http://localhost:3000";
+  await storageDelete(ACCESS_KEY);
+  await storageDelete(REFRESH_KEY);
 }
 
 export const API_URL = resolveApiUrl();
@@ -58,17 +69,49 @@ export class ApiRequestError extends Error {
   }
 }
 
+let refreshInFlight: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  if (refreshInFlight) return refreshInFlight;
+
+  refreshInFlight = (async () => {
+    const refreshToken = await getRefreshToken();
+    if (!refreshToken) return null;
+    try {
+      const res = await fetch(`${API_URL}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (!res.ok) {
+        await clearToken();
+        return null;
+      }
+      const data = (await res.json()) as AuthTokenResponse;
+      await setTokens(data.token, data.refreshToken);
+      return data.token;
+    } catch {
+      await clearToken();
+      return null;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+
+  return refreshInFlight;
+}
+
 export async function api<T>(
   path: string,
-  options: RequestInit & { token?: string | null } = {},
+  options: RequestInit & { token?: string | null; skipAuthRefresh?: boolean } = {},
 ): Promise<T> {
-  const { token, headers, ...rest } = options;
+  const { token, headers, skipAuthRefresh, ...rest } = options;
   let res: Response;
   try {
     res = await fetch(`${API_URL}${path}`, {
       ...rest,
       headers: {
-        "Content-Type": "application/json",
+        ...(rest.body != null ? { "Content-Type": "application/json" } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
@@ -91,6 +134,19 @@ export async function api<T>(
         code: "INVALID_RESPONSE",
         message: "Server returned an unexpected response.",
       });
+    }
+  }
+
+  if (
+    res.status === 401 &&
+    !skipAuthRefresh &&
+    path !== "/auth/refresh" &&
+    path !== "/auth/logout" &&
+    path !== "/auth/login"
+  ) {
+    const next = await refreshAccessToken();
+    if (next) {
+      return api<T>(path, { ...options, token: next, skipAuthRefresh: true });
     }
   }
 

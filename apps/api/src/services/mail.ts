@@ -11,8 +11,6 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendOtpEmail(to: string, code: string): Promise<void> {
-  console.log(`[otp] email=${to} code=${code}`);
-
   try {
     const info = await transporter.sendMail({
       from: env.smtp.from,
@@ -21,7 +19,7 @@ export async function sendOtpEmail(to: string, code: string): Promise<void> {
       text: `Your verification code is ${code}. It expires in 10 minutes. If you did not request this, ignore this email.`,
       html: `<p>Your verification code is <strong>${code}</strong>.</p><p>It expires in 10 minutes.</p><p>If you did not request this, ignore this email.</p>`,
     });
-    console.log(`[otp] mailed messageId=${info.messageId}`);
+    console.log(`[otp] mailed to=${to} messageId=${info.messageId}`);
   } catch (err) {
     console.warn(
       `[otp] email send failed (code still valid):`,

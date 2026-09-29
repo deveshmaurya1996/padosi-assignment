@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import type { AuthTokenResponse, MeResponse } from "@padosipro/types";
-import { api, clearToken, getToken, setToken } from "./api";
+import { api, clearToken, getToken, setTokens } from "./api";
 
 type AuthState = {
   bootstrapping: boolean;
@@ -56,7 +56,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setTokenState(t);
       try {
         const data = await api<MeResponse>("/me", { token: t });
-        if (alive) setMe(data);
+        if (alive) {
+          setMe(data);
+          const latest = await getToken();
+          if (latest && latest !== t) setTokenState(latest);
+        }
       } catch {
         await clearToken();
         if (alive) {
@@ -73,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = useCallback(async (auth: AuthTokenResponse) => {
-    await setToken(auth.token);
+    await setTokens(auth.token, auth.refreshToken);
     setTokenState(auth.token);
     setMe({
       user: auth.user,
@@ -84,15 +88,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setSessionToken = useCallback(async (t: string) => {
-    await setToken(t);
     setTokenState(t);
   }, []);
 
   const signOut = useCallback(async () => {
+    const t = token ?? (await getToken());
+    if (t) {
+      try {
+        await api("/auth/logout", {
+          method: "POST",
+          token: t,
+          skipAuthRefresh: true,
+        });
+      } catch {
+        // Still clear local session if the network fails.
+      }
+    }
     await clearToken();
     setTokenState(null);
     setMe(null);
-  }, []);
+  }, [token]);
 
   const value = useMemo(
     () => ({

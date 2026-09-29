@@ -49,9 +49,7 @@ export default function HomeScreen() {
   return (
     <Screen>
       <View style={styles.topRow}>
-        <View style={{ flex: 1 }}>
-          <BrandMark />
-        </View>
+        <BrandMark />
         <Pressable
           onPress={() => router.push("/(app)/account")}
           accessibilityRole="button"
@@ -98,13 +96,15 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      {tasks.length > 0 ? (
-        <Button
-          label="Edit tasks"
-          onPress={() => router.push("/(app)/tasks")}
-          variant="outline"
-        />
-      ) : null}
+      <View style={styles.footer}>
+        {tasks.length > 0 ? (
+          <Button
+            label="Edit tasks"
+            onPress={() => router.push("/(app)/tasks")}
+            variant="outline"
+          />
+        ) : null}
+      </View>
     </Screen>
   );
 }
@@ -112,6 +112,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   topRow: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "flex-start",
     gap: space.sm,
   },
@@ -144,5 +145,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontFamily: fonts.regular,
+  },
+  footer: {
+    paddingTop: space.sm,
+    gap: space.sm,
   },
 });

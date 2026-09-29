@@ -42,6 +42,10 @@ export const resendOtpSchema = z.object({
   email: emailSchema,
 });
 
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(20, "Refresh token is required"),
+});
+
 export const indianMobileSchema = z
   .string()
   .trim()
@@ -77,5 +81,6 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
 export type ResendOtpInput = z.infer<typeof resendOtpSchema>;
+export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
 export type ProfileInput = z.infer<typeof profileSchema>;
 export type TaskSelectionInput = z.infer<typeof taskSelectionSchema>;

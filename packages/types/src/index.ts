@@ -28,6 +28,8 @@ export type MeResponse = {
 
 export type AuthTokenResponse = {
   token: string;
+  refreshToken: string;
+  expiresIn: number;
   user: UserPublic;
   profileCompleted: boolean;
   tasksSelected: boolean;
@@ -52,6 +54,11 @@ export type TaskSelectionResponse = {
 };
 
 export type RegisterResponse = {
+  message: string;
+  email: string;
+};
+
+export type ResendOtpResponse = {
   message: string;
   email: string;
 };

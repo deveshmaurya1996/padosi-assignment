@@ -1,18 +1,12 @@
 import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useRegister } from "../../hooks/useAuthActions";
 import {
   BrandMark,
   Button,
   Field,
+  FormKeyboard,
   LinkButton,
   Screen,
   Subtitle,
@@ -37,57 +31,55 @@ export default function RegisterScreen() {
 
   return (
     <Screen>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: space.xl }}
-        >
-          <BrandMark />
-          <Title>Create account</Title>
-          <Subtitle>
-            Register with your email. We will send a 6-digit code to verify it.
-          </Subtitle>
-
-          <Field
-            label="Email"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="you@example.com"
-            error={fields.email}
-          />
-          <Field
-            label="Password"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            placeholder="At least 8 characters"
-            error={fields.password}
-          />
-          <Field
-            label="Confirm password"
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder="Repeat password"
-            error={fields.confirmPassword}
-          />
-
-          {error ? <Text style={styles.formError}>{error}</Text> : null}
-
-          <View style={{ flex: 1 }} />
+      <FormKeyboard
+        footer={
           <Button label="Register" onPress={onSubmit} loading={loading} />
-          <View style={styles.footer}>
+        }
+        footerExtra={
+          <View style={styles.footerLinks}>
             <Text style={styles.footerText}>Already have an account? </Text>
-            <LinkButton label="Log in" onPress={() => router.replace("/(auth)/login")} />
+            <LinkButton
+              label="Log in"
+              onPress={() => router.replace("/(auth)/login")}
+            />
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        }
+      >
+        <BrandMark />
+        <Title>Create account</Title>
+        <Subtitle>
+          Register with your email. We will send a 6-digit code to verify it.
+        </Subtitle>
+
+        <Field
+          label="Email"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          autoComplete="email"
+          value={email}
+          onChangeText={setEmail}
+          placeholder="you@example.com"
+          error={fields.email}
+        />
+        <Field
+          label="Password"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+          placeholder="At least 8 characters"
+          error={fields.password}
+        />
+        <Field
+          label="Confirm password"
+          secureTextEntry
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          placeholder="Repeat password"
+          error={fields.confirmPassword}
+        />
+
+        {error ? <Text style={styles.formError}>{error}</Text> : null}
+      </FormKeyboard>
     </Screen>
   );
 }
@@ -98,11 +90,10 @@ const styles = StyleSheet.create({
     marginBottom: space.md,
     fontFamily: fonts.regular,
   },
-  footer: {
+  footerLinks: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: space.md,
   },
   footerText: {
     color: colors.textSecondary,

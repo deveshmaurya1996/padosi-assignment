@@ -16,6 +16,7 @@ export async function verifyPassword(password: string, passwordHash: string): Pr
 export type JwtPayload = {
   sub: string;
   email: string;
+  sid: string;
 };
 
 export function signToken(payload: JwtPayload): string {
@@ -27,7 +28,7 @@ export function signToken(payload: JwtPayload): string {
 export function verifyToken(token: string): JwtPayload {
   try {
     const decoded = jwt.verify(token, env.jwtSecret) as JwtPayload;
-    if (!decoded?.sub || !decoded?.email) {
+    if (!decoded?.sub || !decoded?.email || !decoded?.sid) {
       throw new Error("invalid payload");
     }
     return decoded;

@@ -17,6 +17,19 @@ model User {
   verifications EmailVerification[]
   profile       Profile?
   userTasks     UserTask[]
+  sessions      Session[]
+}
+
+model Session {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokenHash String
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model EmailVerification {

@@ -4,6 +4,8 @@ import {
   getTaskSelection,
   listTasksGrouped,
   loginUser,
+  logoutSession,
+  refreshAuth,
   registerUser,
   resendUserOtp,
   saveTaskSelection,
@@ -25,6 +27,12 @@ export async function registerRoutes(app: FastifyInstance) {
   app.post("/auth/resend-otp", async (request) => resendUserOtp(request.body));
 
   app.post("/auth/login", async (request) => loginUser(request.body));
+
+  app.post("/auth/refresh", async (request) => refreshAuth(request.body));
+
+  app.post("/auth/logout", { preHandler: requireAuth }, async (request) =>
+    logoutSession(request.sessionId),
+  );
 
   app.get("/me", { preHandler: requireAuth }, async (request) =>
     buildMeResponse(request.user),

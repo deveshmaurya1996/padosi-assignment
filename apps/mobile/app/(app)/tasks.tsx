@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import {
+  FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import type { TaskPublic } from "@padosipro/types";
 import { useAuth } from "../../lib/auth";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useTasksCatalog } from "../../hooks/useTasks";
@@ -21,6 +22,10 @@ import {
   Title,
 } from "../../components/ui";
 import { colors, fonts, radius, space } from "../../theme";
+
+type TaskRow =
+  | { type: "header"; key: string; category: string }
+  | { type: "task"; key: string; task: TaskPublic };
 
 export default function TasksScreen() {
   const { me } = useAuth();
@@ -53,6 +58,21 @@ export default function TasksScreen() {
       }))
       .filter((c) => c.tasks.length > 0);
   }, [categories, debouncedQuery]);
+
+  const rows = useMemo(() => {
+    const out: TaskRow[] = [];
+    for (const group of filtered) {
+      out.push({
+        type: "header",
+        key: `h-${group.category}`,
+        category: group.category,
+      });
+      for (const task of group.tasks) {
+        out.push({ type: "task", key: task.id, task });
+      }
+    }
+    return out;
+  }, [filtered]);
 
   function onContinue() {
     if (selected.size === 0) {
@@ -115,39 +135,47 @@ export default function TasksScreen() {
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: space.lg }}>
-        {filtered.length === 0 ? (
+      <FlatList
+        style={{ flex: 1 }}
+        data={rows}
+        keyExtractor={(item) => item.key}
+        contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: space.lg }}
+        ListEmptyComponent={
           <StateBlock title="No matches" body="Try a different search." />
-        ) : (
-          filtered.map((group) => (
-            <View key={group.category} style={styles.group}>
-              <Text style={styles.groupTitle}>{group.category}</Text>
-              {group.tasks.map((task) => {
-                const on = selected.has(task.id);
-                return (
-                  <Pressable
-                    key={task.id}
-                    onPress={() => toggle(task)}
-                    style={[styles.card, on && styles.cardOn]}
-                  >
-                    <View style={[styles.check, on && styles.checkOn]}>
-                      {on ? <Text style={styles.checkMark}>✓</Text> : null}
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.taskName}>{task.name}</Text>
-                      <Text style={styles.taskDesc}>{task.description}</Text>
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-          ))
-        )}
-      </ScrollView>
+        }
+        renderItem={({ item }) => {
+          if (item.type === "header") {
+            return (
+              <View style={styles.group}>
+                <Text style={styles.groupTitle}>{item.category}</Text>
+              </View>
+            );
+          }
+          const on = selected.has(item.task.id);
+          return (
+            <Pressable
+              onPress={() => toggle(item.task)}
+              style={[styles.card, on && styles.cardOn]}
+            >
+              <View style={[styles.check, on && styles.checkOn]}>
+                {on ? <Text style={styles.checkMark}>✓</Text> : null}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.taskName}>{item.task.name}</Text>
+                <Text style={styles.taskDesc}>{item.task.description}</Text>
+              </View>
+            </Pressable>
+          );
+        }}
+      />
 
       <View style={styles.footer}>
         <Text style={styles.count}>{selected.size} selected</Text>
-        <Button label="Review selection" onPress={onContinue} disabled={selected.size === 0} />
+        <Button
+          label="Review selection"
+          onPress={onContinue}
+          disabled={selected.size === 0}
+        />
       </View>
     </Screen>
   );
@@ -164,7 +192,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textPrimary,
     fontFamily: fonts.regular,
-    marginBottom: space.md,
+    marginBottom: space.sm,
   },
   error: {
     color: colors.error,
@@ -172,13 +200,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
   },
   group: {
-    marginBottom: space.lg,
+    marginTop: space.sm,
+    marginBottom: space.sm,
   },
   groupTitle: {
     fontFamily: fonts.semibold,
     fontSize: 15,
     color: colors.primary,
-    marginBottom: space.sm,
   },
   card: {
     flexDirection: "row",
@@ -231,6 +259,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     padding: space.lg,
+    paddingTop: 2,
     backgroundColor: colors.background,
     borderTopWidth: 1,
     borderTopColor: colors.border,

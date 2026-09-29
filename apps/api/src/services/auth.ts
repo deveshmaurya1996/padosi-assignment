@@ -10,6 +10,7 @@ import {
   loginSchema,
   profileSchema,
   registerSchema,
+  refreshTokenSchema,
   resendOtpSchema,
   taskSelectionSchema,
   verifyOtpSchema,
@@ -27,7 +28,8 @@ import {
   otpExpiresAt,
   verifyOtpHash,
 } from "./otp";
-import { hashPassword, signToken, verifyPassword } from "./password";
+import { hashPassword, verifyPassword } from "./password";
+import { createSession, revokeSession, rotateRefresh } from "./session";
 
 export function toUserPublic(user: User): UserPublic {
   return {
@@ -79,12 +81,37 @@ export async function buildMeResponse(user: User): Promise<MeResponse> {
 
 export async function buildAuthResponse(user: User): Promise<AuthTokenResponse> {
   const flags = await getOnboardingFlags(user.id);
+  const tokens = await createSession(user);
   return {
-    token: signToken({ sub: user.id, email: user.email }),
+    token: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
+    expiresIn: tokens.expiresIn,
     user: toUserPublic(user),
     profileCompleted: flags.profileCompleted,
     tasksSelected: flags.tasksSelected,
   };
+}
+
+export async function refreshAuth(body: unknown): Promise<AuthTokenResponse> {
+  const parsed = refreshTokenSchema.safeParse(body);
+  if (!parsed.success) {
+    throw new AppError(400, "VALIDATION_ERROR", "Please fix the highlighted fields.", zodFields(parsed.error));
+  }
+  const rotated = await rotateRefresh(parsed.data.refreshToken);
+  const flags = await getOnboardingFlags(rotated.user.id);
+  return {
+    token: rotated.accessToken,
+    refreshToken: rotated.refreshToken,
+    expiresIn: rotated.expiresIn,
+    user: toUserPublic(rotated.user),
+    profileCompleted: flags.profileCompleted,
+    tasksSelected: flags.tasksSelected,
+  };
+}
+
+export async function logoutSession(sessionId: string): Promise<{ ok: true }> {
+  await revokeSession(sessionId);
+  return { ok: true };
 }
 
 async function createAndSendOtp(user: User): Promise<void> {
@@ -128,7 +155,7 @@ export async function registerUser(body: unknown) {
   await createAndSendOtp(user);
 
   return {
-    message: "Account created. Check your email for a verification code.",
+    message: "Account created. Check your email for the verification code.",
     email: user.email,
   };
 }
@@ -149,7 +176,7 @@ export async function verifyUserOtp(body: unknown) {
   }
 
   const verification = await prisma.emailVerification.findFirst({
-    where: { userId: user.id },
+    where: { userId: user.id, usedAt: null },
     orderBy: { createdAt: "desc" },
   });
 

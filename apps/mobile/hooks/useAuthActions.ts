@@ -7,6 +7,7 @@ import {
 import type {
   AuthTokenResponse,
   RegisterResponse,
+  ResendOtpResponse,
   VerifyOtpResponse,
 } from "@padosipro/types";
 import { api } from "../lib/api";
@@ -80,7 +81,11 @@ export function useRegister() {
       );
 
       if (!result.ok) return { ok: false as const };
-      return { ok: true as const, email: parsed.data.email, data: result.data };
+      return {
+        ok: true as const,
+        email: parsed.data.email,
+        data: result.data,
+      };
     },
     [run, setError, setFields],
   );
@@ -128,7 +133,7 @@ export function useResendOtp() {
       if (!email) return { ok: false as const };
       setError(null);
       const result = await run(() =>
-        api("/auth/resend-otp", {
+        api<ResendOtpResponse>("/auth/resend-otp", {
           method: "POST",
           body: JSON.stringify({ email }),
         }),

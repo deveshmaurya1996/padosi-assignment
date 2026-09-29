@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -24,6 +28,53 @@ export function Screen({
     <SafeAreaView style={[styles.screen, style]} edges={["top", "left", "right", "bottom"]}>
       {children}
     </SafeAreaView>
+  );
+}
+
+export function FormKeyboard({
+  children,
+  footer,
+  footerExtra,
+}: {
+  children: React.ReactNode;
+  footer: React.ReactNode;
+  footerExtra?: React.ReactNode;
+}) {
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const show = Keyboard.addListener(showEvt, () => setKeyboardOpen(true));
+    const hide = Keyboard.addListener(hideEvt, () => setKeyboardOpen(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
+  return (
+    <KeyboardAvoidingView style={styles.formKeyboard} behavior="padding">
+      <ScrollView
+        style={styles.formScrollView}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        contentContainerStyle={styles.formScroll}
+      >
+        {children}
+      </ScrollView>
+      <View
+        style={[
+          styles.formFooter,
+          keyboardOpen && styles.formFooterKeyboardOpen,
+        ]}
+      >
+        {footer}
+        {footerExtra ? (
+          <View style={styles.formFooterExtra}>{footerExtra}</View>
+        ) : null}
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -192,7 +243,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     paddingHorizontal: space.lg,
     paddingTop: space.xl,
-    paddingBottom: space.lg,
+    paddingBottom: space.md,
+  },
+  formKeyboard: {
+    flex: 1,
+  },
+  formScrollView: {
+    flex: 1,
+  },
+  formScroll: {
+    flexGrow: 1,
+    paddingBottom: space.md,
+  },
+  formFooter: {
+    paddingTop: space.sm,
+    paddingBottom: space.sm,
+  },
+  formFooterKeyboardOpen: {
+    paddingBottom: space.sm,
+  },
+  formFooterExtra: {
+    marginTop: space.md,
+    alignItems: "center",
   },
   brandRow: {
     marginBottom: space.lg,
