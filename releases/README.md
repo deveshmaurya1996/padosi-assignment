@@ -3,7 +3,7 @@
 Submission build (tracked in this folder):
 
 - File: [`padosipro-preview.apk`](./padosipro-preview.apk)
-- EAS build: https://expo.dev/accounts/deveshmaurya/projects/padosipro/builds/13810600-4282-4cdb-a3cf-20d08413005e
+- EAS build: https://expo.dev/accounts/deveshmaurya/projects/padosipro/builds/d5352404-3b26-4541-894b-1e8ce1fa2dae
 - API: `https://padosi-assignment.onrender.com`
 
 OTP is shown on the Verify screen (no mailbox). Rebuild the APK after OTP UI changes:
