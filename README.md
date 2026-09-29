@@ -100,7 +100,16 @@ Locally use **Mailpit**:
 - SMTP: `localhost:1025`
 - Web UI: http://localhost:8025 — open the message and copy the 6-digit code
 
-On **Render**, set Resend (`SMTP_HOST=smtp.resend.com`, `SMTP_USER=resend`, `SMTP_PASS=<Resend API key>`, `EMAIL_FROM=PadosiPro <onboarding@resend.dev>`). The API sends mail over **HTTPS** (`api.resend.com`) — raw SMTP ports often hang on Render. Without a verified domain, Resend only delivers to the email on your Resend account. OTP is never returned in JSON.
+On **Render**, set Resend with a verified sending domain:
+
+| Env | Value |
+|---|---|
+| `SMTP_HOST` | `smtp.resend.com` |
+| `SMTP_USER` | `resend` |
+| `SMTP_PASS` | Resend API key |
+| `EMAIL_FROM` | `PadosiPro <noreply@dartix.live>` |
+
+Mail is sent over **HTTPS** (`api.resend.com`). Locally keep using Mailpit. OTP is never returned in JSON.
 
 OTP rules: 6 digits, 10-minute expiry, single use, max 5 wrong attempts, ~30s resend cooldown.
 

@@ -43,4 +43,4 @@ services:
       - key: SMTP_PASS
         sync: false
       - key: EMAIL_FROM
-        value: "PadosiPro <onboarding@resend.dev>"
+        value: "PadosiPro <noreply@dartix.live>"

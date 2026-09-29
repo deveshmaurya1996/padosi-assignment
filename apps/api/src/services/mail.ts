@@ -29,7 +29,10 @@ function emailSendErrorMessage(err: unknown): string {
     /Invalid `to` field/i.test(raw) ||
     /validation_error/i.test(raw)
   ) {
-    return "OTP email could not be sent to this address. Use the email on your Resend account, or verify a domain in Resend.";
+    return "OTP email could not be sent to this address. Check EMAIL_FROM and SMTP_PASS (Resend API key) on the server.";
+  }
+  if (/domain is not verified/i.test(raw)) {
+    return "EMAIL_FROM domain is not verified in Resend. Update EMAIL_FROM to a verified sender.";
   }
   if (/Missing credentials|Invalid login|535|authentication|unauthorized|401|403/i.test(raw)) {
     return "Email is not configured on the server (check SMTP_PASS / Resend API key).";
@@ -38,6 +41,9 @@ function emailSendErrorMessage(err: unknown): string {
 }
 
 async function sendViaResendHttp(to: string, code: string): Promise<void> {
+  const from = env.smtp.from;
+  console.log(`[otp] Resend HTTP from=${from} to=${to}`);
+
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -45,7 +51,7 @@ async function sendViaResendHttp(to: string, code: string): Promise<void> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: env.smtp.from,
+      from,
       to: [to],
       subject: "Your PadosiPro verification code",
       text: `Your verification code is ${code}. It expires in 10 minutes. If you did not request this, ignore this email.`,
