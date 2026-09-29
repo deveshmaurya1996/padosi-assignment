@@ -51,6 +51,7 @@ ios/
 releases/*.apk
 releases/*.aab
 !releases/.gitkeep
+!releases/padosipro-preview.apk
 
 # Prisma local DBs (if ever used)
 *.db

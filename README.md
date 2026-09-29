@@ -2,6 +2,20 @@
 
 Native mobile app (Expo) + Fastify API for the PadosiPro first-journey assignment: register → email OTP → login → profile → task selection → home.
 
+## Submission
+
+| Item | Link / path |
+|---|---|
+| Source | https://github.com/deveshmaurya1996/padosi-assignment |
+| Live API | https://padosi-assignment.onrender.com/health |
+| Android APK | [`releases/padosipro-preview.apk`](releases/padosipro-preview.apk) |
+| Design notes | [DESIGN.md](DESIGN.md) |
+| APK build notes | [releases/README.md](releases/README.md) |
+
+**Reviewer flow (APK):** install `releases/padosipro-preview.apk` → register with a real email → open that inbox for the OTP → login → profile → tasks → home. The APK talks to the Render API above. Free Render instances may sleep (~30–60s cold start).
+
+**Reviewer flow (local):** follow [Quick start](#quick-start--15-minutes) below; OTP emails appear in Mailpit at http://localhost:8025.
+
 ## Prerequisites
 
 - Node.js 20+
@@ -161,7 +175,7 @@ npx eas-cli login
 npx eas-cli build -p android --profile preview
 ```
 
-When the build finishes, download the APK from the Expo link and copy it into [`releases/`](releases/) before submitting (keep the folder even if empty until the build finishes).
+Submission APK: [`releases/padosipro-preview.apk`](releases/padosipro-preview.apk) (Render API). Details in [`releases/README.md`](releases/README.md). To rebuild, download the new APK from Expo and replace that file.
 
 For local testing of OTP, use Mailpit (http://localhost:8025).
 
@@ -175,7 +189,7 @@ apps/mobile       Expo Router app
 packages/types    Shared TypeScript types
 packages/validation  Shared Zod schemas
 prisma lives under apps/api/prisma
-releases/         Place the Android APK here for submission
+releases/         Submission APK (`padosipro-preview.apk`) + build notes
 ```
 
 ## Design choices
