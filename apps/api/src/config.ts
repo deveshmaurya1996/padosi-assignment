@@ -7,6 +7,15 @@ const monoRoot = path.resolve(apiRoot, "../..");
 dotenv.config({ path: path.join(monoRoot, ".env") });
 dotenv.config({ path: path.join(apiRoot, ".env"), override: true });
 
+if (process.env.VITEST) {
+  process.env.SMTP_HOST = "localhost";
+  process.env.SMTP_PORT = "1025";
+  process.env.SMTP_SECURE = "false";
+  process.env.SMTP_USER = "";
+  process.env.SMTP_PASS = "";
+  process.env.EMAIL_FROM = "PadosiPro <noreply@padosipro.local>";
+}
+
 function required(name: string, fallback?: string): string {
   const value = process.env[name] ?? fallback;
   if (!value) {
@@ -46,7 +55,6 @@ export const OTP = {
   resendCooldownMs: 30 * 1000,
 } as const;
 
-/** Access token lifetime in seconds for clients (parsed from jwtExpiresIn when possible). */
 export function accessTokenExpiresInSeconds(): number {
   const raw = env.jwtExpiresIn.trim();
   const m = /^(\d+)([smhd])$/i.exec(raw);
