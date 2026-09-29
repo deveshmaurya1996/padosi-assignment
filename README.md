@@ -73,7 +73,36 @@ This project uses **Mailpit** (local mail catcher). Compose exposes:
 - SMTP: `localhost:1025`
 - Web UI: http://localhost:8025
 
+On **Render**, Mailpit is not used. Registration still succeeds; open the web service **Logs** and look for `[otp] email=... code=...`.
+
 OTP rules: 6 digits, 10-minute expiry, single use, max 5 wrong attempts, ~30s resend cooldown. Only a **hash** of the code is stored.
+
+## Deploy API on Render
+
+Blueprint file: [render.yaml](render.yaml) (Web Service + free Postgres).
+
+1. Push this repo to GitHub.
+2. [Render Dashboard](https://dashboard.render.com) → **New** → **Blueprint** → select the repo.
+3. Apply the blueprint. Wait for first deploy (migrate + seed run on start).
+4. Open `https://<service>.onrender.com/health` — should return `{"ok":true}`.
+5. Point the mobile app at Render before building an APK:
+
+```
+EXPO_PUBLIC_API_URL=https://<service>.onrender.com
+```
+
+**Manual Web Service** (if you skip Blueprint):
+
+| Setting | Value |
+|---|---|
+| Runtime | Node |
+| Build | `pnpm run render:build` |
+| Start | `pnpm run render:start` |
+| Health | `/health` |
+
+Env: `DATABASE_URL` (from Render Postgres), `JWT_SECRET` (long random), `HOST=0.0.0.0`, `CORS_ORIGIN=*`. Leave `SMTP_*` empty.
+
+Free tier spins down after idle — first request after sleep can take ~30–60s.
 
 ## API overview
 

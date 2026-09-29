@@ -1,0 +1,34 @@
+
+databases:
+  - name: padosipro-db
+    plan: free
+    databaseName: padosipro
+    user: padosi
+
+services:
+  - type: web
+    name: padosipro-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: .
+    buildCommand: pnpm run render:build
+    startCommand: pnpm run render:start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: "0.0.0.0"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: padosipro-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: EMAIL_FROM
+        value: "PadosiPro <noreply@padosipro.local>"
