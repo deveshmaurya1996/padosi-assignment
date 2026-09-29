@@ -74,7 +74,7 @@ See [.env.example](.env.example). Never commit real secrets.
 | `JWT_SECRET` | HMAC secret for access tokens (**required** when `NODE_ENV=production`) |
 | `JWT_EXPIRES_IN` | Access token lifetime (default `15m`) |
 | `REFRESH_TOKEN_TTL_MS` | Refresh session lifetime in ms (default 30 days) |
-| `SMTP_*` / `EMAIL_FROM` | Mailpit SMTP (`localhost:1025`) |
+| `SMTP_*` / `EMAIL_FROM` | Mailpit locally, or Resend (`smtp.resend.com`) for real OTP |
 | `EXPO_PUBLIC_API_URL` | Mobile API base URL |
 
 ## Email / OTP
@@ -86,7 +86,7 @@ Locally use **Mailpit**:
 - SMTP: `localhost:1025`
 - Web UI: http://localhost:8025 — open the message and copy the 6-digit code
 
-On **Render**, configure real SMTP or use local Mailpit against a tunnelled API. OTP is never returned in JSON.
+On **Render**, set Resend SMTP (`SMTP_HOST=smtp.resend.com`, `SMTP_USER=resend`, `SMTP_PASS=<api key>`, `EMAIL_FROM=PadosiPro <onboarding@resend.dev>`). Without a verified domain, Resend only delivers to the email on your Resend account. OTP is never returned in JSON.
 
 OTP rules: 6 digits, 10-minute expiry, single use, max 5 wrong attempts, ~30s resend cooldown.
 
@@ -113,7 +113,7 @@ EXPO_PUBLIC_API_URL=https://<service>.onrender.com
 | Start | `pnpm run render:start` |
 | Health | `/health` |
 
-Env: `DATABASE_URL` (from Render Postgres), `JWT_SECRET` (long random — required), `HOST=0.0.0.0`, `CORS_ORIGIN=*`. Leave `SMTP_*` empty.
+Env: `DATABASE_URL` (from Render Postgres), `JWT_SECRET` (long random — required), `HOST=0.0.0.0`, `CORS_ORIGIN=*`, plus Resend `SMTP_*` / `EMAIL_FROM` (see above).
 
 Free tier spins down after idle — first request after sleep can take ~30–60s.
 

@@ -27,8 +27,20 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRES_IN
-        value: 7d
+        value: 15m
+      - key: REFRESH_TOKEN_TTL_MS
+        value: "2592000000"
       - key: CORS_ORIGIN
         value: "*"
+      - key: SMTP_HOST
+        value: smtp.resend.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_SECURE
+        value: "true"
+      - key: SMTP_USER
+        value: resend
+      - key: SMTP_PASS
+        sync: false
       - key: EMAIL_FROM
-        value: "PadosiPro <noreply@padosipro.local>"
+        value: "PadosiPro <onboarding@resend.dev>"

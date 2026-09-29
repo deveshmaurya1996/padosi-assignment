@@ -1,4 +1,11 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const apiRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const monoRoot = path.resolve(apiRoot, "../..");
+dotenv.config({ path: path.join(monoRoot, ".env") });
+dotenv.config({ path: path.join(apiRoot, ".env"), override: true });
 
 function required(name: string, fallback?: string): string {
   const value = process.env[name] ?? fallback;
