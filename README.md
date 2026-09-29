@@ -12,9 +12,9 @@ Native mobile app (Expo) + Fastify API for the PadosiPro first-journey assignmen
 | Design notes | [DESIGN.md](DESIGN.md) |
 | APK build notes | [releases/README.md](releases/README.md) |
 
-**Reviewer flow (APK):** install `releases/padosipro-preview.apk` → register with a real email → open that inbox for the OTP → login → profile → tasks → home. The APK talks to the Render API above. Free Render instances may sleep (~30–60s cold start).
+**Reviewer flow (APK):** install `releases/padosipro-preview.apk` → register → **OTP is shown on the Verify screen** → verify → login → profile → tasks → home. The APK talks to the Render API above. Free Render instances may sleep (~30–60s cold start).
 
-**Reviewer flow (local):** follow [Quick start](#quick-start--15-minutes) below; OTP emails appear in Mailpit at http://localhost:8025.
+**Reviewer flow (local):** follow [Quick start](#quick-start--15-minutes) below; OTP appears on the Verify screen (Mailpit optional).
 
 ## Prerequisites
 
@@ -49,8 +49,8 @@ pnpm dev:mobile
 ```
 
 - API: http://localhost:3000/health  
-- Mailpit UI (OTP emails): http://localhost:8025  
-- Open Mailpit after register → copy the **newest** 6-digit code for **your** email  
+- OTP is returned by the API and shown on the Verify screen  
+- Optional: Mailpit UI at http://localhost:8025  
 - Dev builds auto-hit local API; release/EAS auto-hit Render (see `.env.development` / `.env.production`).
 
 ### Pointing the app at the API
@@ -88,28 +88,14 @@ See [.env.example](.env.example). Never commit real secrets.
 | `JWT_SECRET` | HMAC secret for access tokens (**required** when `NODE_ENV=production`) |
 | `JWT_EXPIRES_IN` | Access token lifetime (default `15m`) |
 | `REFRESH_TOKEN_TTL_MS` | Refresh session lifetime in ms (default 30 days) |
-| `SMTP_*` / `EMAIL_FROM` | Mailpit locally, or Resend (`smtp.resend.com`) for real OTP |
+| `SMTP_*` / `EMAIL_FROM` | Unused (OTP is shown in the app) |
 | `EXPO_PUBLIC_API_URL` | Mobile API base URL |
 
 ## Email / OTP
 
-OTP is sent by email only (never returned in the API or shown in the app). Only a **hash** of the code is stored in the database.
+For this **take-home**, register / resend responses include `otp`, and the Verify screen shows the code. No mailbox required. Only a **hash** of the code is stored in the database.
 
-Locally use **Mailpit**:
-
-- SMTP: `localhost:1025`
-- Web UI: http://localhost:8025 — open the message and copy the 6-digit code
-
-On **Render**, set Resend with a verified sending domain:
-
-| Env | Value |
-|---|---|
-| `SMTP_HOST` | `smtp.resend.com` |
-| `SMTP_USER` | `resend` |
-| `SMTP_PASS` | Resend API key |
-| `EMAIL_FROM` | `PadosiPro <noreply@dartix.live>` |
-
-Mail is sent over **HTTPS** (`api.resend.com`). Locally keep using Mailpit. OTP is never returned in JSON.
+OTP is also printed in API logs as `[otp] email=... code=...`.
 
 OTP rules: 6 digits, 10-minute expiry, single use, max 5 wrong attempts, ~30s resend cooldown.
 
@@ -136,7 +122,7 @@ EXPO_PUBLIC_API_URL=https://<service>.onrender.com
 | Start | `pnpm run render:start` |
 | Health | `/health` |
 
-Env: `DATABASE_URL` (from Render Postgres), `JWT_SECRET` (long random — required), `HOST=0.0.0.0`, `CORS_ORIGIN=*`, plus Resend `SMTP_*` / `EMAIL_FROM` (see above).
+Env: `DATABASE_URL` (from Render Postgres), `JWT_SECRET` (long random — required), `HOST=0.0.0.0`, `CORS_ORIGIN=*`. No SMTP required — OTP is shown in the app.
 
 Free tier spins down after idle — first request after sleep can take ~30–60s.
 
@@ -184,9 +170,9 @@ npx eas-cli login
 npx eas-cli build -p android --profile preview
 ```
 
-Submission APK: [`releases/padosipro-preview.apk`](releases/padosipro-preview.apk) (Render API). Details in [`releases/README.md`](releases/README.md). To rebuild, download the new APK from Expo and replace that file.
+Submission APK: [`releases/padosipro-preview.apk`](releases/padosipro-preview.apk) (Render API). Details in [`releases/README.md`](releases/README.md). To rebuild after UI changes, download the new APK from Expo and replace that file.
 
-For local testing of OTP, use Mailpit (http://localhost:8025).
+OTP: shown on the Verify screen after register / resend.
 
 ## Project layout
 
@@ -210,7 +196,7 @@ Full rationale (chosen vs deferred alternatives): [DESIGN.md](DESIGN.md).
 ## Manual walkthrough
 
 1. Register with email + password  
-2. Open Mailpit → copy OTP → verify  
+2. Copy the OTP shown on the Verify screen → verify  
 3. Log in  
 4. Complete profile (name, +91 mobile, address; business optional)  
 5. Multi-select tasks → confirm → home  

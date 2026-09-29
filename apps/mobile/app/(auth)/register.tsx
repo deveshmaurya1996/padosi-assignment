@@ -25,7 +25,7 @@ export default function RegisterScreen() {
     if (!result.ok) return;
     router.push({
       pathname: "/(auth)/verify",
-      params: { email: result.email },
+      params: { email: result.email, otp: result.otp },
     });
   }
 
@@ -48,7 +48,7 @@ export default function RegisterScreen() {
         <BrandMark />
         <Title>Create account</Title>
         <Subtitle>
-          Register with your email. We will send a 6-digit code to verify it.
+          Register with your email. A 6-digit code will appear on the next screen.
         </Subtitle>
 
         <Field

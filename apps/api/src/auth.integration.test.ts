@@ -30,23 +30,13 @@ describe("auth integration", () => {
       payload: { email: happyEmail, password, confirmPassword: password },
     });
     expect(reg.statusCode).toBe(201);
-    expect(reg.json().otp).toBeUndefined();
-
-    const knownCode = "654321";
-    const user = await prisma.user.findUniqueOrThrow({ where: { email: happyEmail } });
-    await prisma.emailVerification.updateMany({
-      where: { userId: user.id, usedAt: null },
-      data: {
-        codeHash: await bcrypt.hash(knownCode, 10),
-        attempts: 0,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-      },
-    });
+    const otp = reg.json().otp as string;
+    expect(otp).toMatch(/^\d{6}$/);
 
     const verify = await app.inject({
       method: "POST",
       url: "/auth/verify-otp",
-      payload: { email: happyEmail, code: knownCode },
+      payload: { email: happyEmail, code: otp },
     });
     expect(verify.statusCode).toBe(200);
 

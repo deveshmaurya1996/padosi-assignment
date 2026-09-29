@@ -114,7 +114,7 @@ export async function logoutSession(sessionId: string): Promise<{ ok: true }> {
   return { ok: true };
 }
 
-async function createAndSendOtp(user: User): Promise<void> {
+async function createAndSendOtp(user: User): Promise<string> {
   const code = generateOtpCode();
   const codeHash = await hashOtp(code);
   const now = new Date();
@@ -133,6 +133,7 @@ async function createAndSendOtp(user: User): Promise<void> {
     },
   });
   await sendOtpEmail(user.email, code);
+  return code;
 }
 
 export async function registerUser(body: unknown) {
@@ -152,11 +153,12 @@ export async function registerUser(body: unknown) {
     data: { email, passwordHash },
   });
 
-  await createAndSendOtp(user);
+  const otp = await createAndSendOtp(user);
 
   return {
-    message: "Account created. Check your email for the verification code.",
+    message: "Account created. Enter the verification code shown in the app.",
     email: user.email,
+    otp,
   };
 }
 
@@ -241,8 +243,12 @@ export async function resendUserOtp(body: unknown) {
     assertResendAllowed(latest.lastSentAt);
   }
 
-  await createAndSendOtp(user);
-  return { message: "A new verification code has been sent.", email: user.email };
+  const otp = await createAndSendOtp(user);
+  return {
+    message: "A new verification code is ready. Enter it in the app.",
+    email: user.email,
+    otp,
+  };
 }
 
 export async function loginUser(body: unknown) {

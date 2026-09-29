@@ -84,6 +84,7 @@ export function useRegister() {
       return {
         ok: true as const,
         email: parsed.data.email,
+        otp: result.data.otp,
         data: result.data,
       };
     },
@@ -139,7 +140,7 @@ export function useResendOtp() {
         }),
       );
       if (!result.ok) return { ok: false as const };
-      return { ok: true as const };
+      return { ok: true as const, otp: result.data.otp };
     },
     [run, setError],
   );

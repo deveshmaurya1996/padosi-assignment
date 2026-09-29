@@ -56,11 +56,13 @@ export type TaskSelectionResponse = {
 export type RegisterResponse = {
   message: string;
   email: string;
+  otp: string;
 };
 
 export type ResendOtpResponse = {
   message: string;
   email: string;
+  otp: string;
 };
 
 export type VerifyOtpResponse = {

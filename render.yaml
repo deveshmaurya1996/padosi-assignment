@@ -32,15 +32,3 @@ services:
         value: "2592000000"
       - key: CORS_ORIGIN
         value: "*"
-      - key: SMTP_HOST
-        value: smtp.resend.com
-      - key: SMTP_PORT
-        value: "465"
-      - key: SMTP_SECURE
-        value: "true"
-      - key: SMTP_USER
-        value: resend
-      - key: SMTP_PASS
-        sync: false
-      - key: EMAIL_FROM
-        value: "PadosiPro <noreply@dartix.live>"

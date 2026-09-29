@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { otpCodeSchema } from "@padosipro/validation";
 import { useResendOtp, useVerifyOtp } from "../../hooks/useAuthActions";
@@ -12,7 +12,7 @@ import {
   Subtitle,
   Title,
 } from "../../components/ui";
-import { space } from "../../theme";
+import { colors, fonts, space } from "../../theme";
 
 function maskEmail(email: string) {
   const [user, domain] = email.split("@");
@@ -30,17 +30,28 @@ function paramString(value: string | string[] | undefined): string {
 }
 
 export default function VerifyScreen() {
-  const params = useLocalSearchParams<{ email?: string | string[] }>();
+  const params = useLocalSearchParams<{ email?: string | string[]; otp?: string | string[] }>();
   const email = paramString(params.email);
   const { verify, loading, error: verifyError } = useVerifyOtp();
   const { resend, error: resendError } = useResendOtp();
   const [code, setCode] = useState("");
+  const [demoOtp, setDemoOtp] = useState(paramString(params.otp));
   const [info, setInfo] = useState(
     email
-      ? `We've sent a code to ${maskEmail(email)}. It expires in 10 minutes.`
+      ? `Enter the code for ${maskEmail(email)}. It expires in 10 minutes.`
       : "Enter the 6-digit code. It expires in 10 minutes.",
   );
   const [cooldown, setCooldown] = useState(30);
+
+  useEffect(() => {
+    if (demoOtp || !email) return;
+    // Came from login without otp — fetch a fresh code for the UI.
+    void (async () => {
+      const result = await resend(email);
+      if (result.ok) setDemoOtp(result.otp);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot bootstrap
+  }, []);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -62,7 +73,8 @@ export default function VerifyScreen() {
     if (cooldown > 0 || !email) return;
     const result = await resend(email);
     if (!result.ok) return;
-    setInfo(`A new code was sent to ${maskEmail(email)}. It expires in 10 minutes.`);
+    setDemoOtp(result.otp);
+    setInfo(`A new code is ready for ${maskEmail(email)}. It expires in 10 minutes.`);
     setCooldown(30);
   }
 
@@ -83,6 +95,14 @@ export default function VerifyScreen() {
         <Title>Enter OTP</Title>
         <Subtitle>{info}</Subtitle>
 
+        {demoOtp ? (
+          <View style={styles.otpBanner}>
+            <Text style={styles.otpLabel}>Your verification code</Text>
+            <Text style={styles.otpCode}>{demoOtp}</Text>
+            <Text style={styles.otpNote}>Shown here for this take-home (no mailbox required).</Text>
+          </View>
+        ) : null}
+
         <Field
           label="6-digit code"
           keyboardType="number-pad"
@@ -102,3 +122,33 @@ export default function VerifyScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  otpBanner: {
+    backgroundColor: colors.goldBg,
+    borderWidth: 1,
+    borderColor: colors.gold,
+    padding: space.md,
+    marginBottom: space.md,
+    alignItems: "center",
+  },
+  otpLabel: {
+    color: colors.textSecondary,
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  otpCode: {
+    color: colors.primary,
+    fontFamily: fonts.bold,
+    fontSize: 28,
+    letterSpacing: 6,
+  },
+  otpNote: {
+    marginTop: 6,
+    color: colors.textSecondary,
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    textAlign: "center",
+  },
+});
